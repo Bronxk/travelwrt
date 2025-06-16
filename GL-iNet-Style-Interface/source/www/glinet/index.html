@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Router Admin - GL.iNet Style</title>
+    
+    <!-- Pure.css for minimal styling -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/grids-responsive-min.css">
+    
+    <!-- Alpine.js for reactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Custom styles -->
+    <style>
+        :root {
+            --primary-color: #00C0EF;
+            --secondary-color: #1E90FF;
+            --success-color: #00A65A;
+            --warning-color: #F39C12;
+            --danger-color: #DD4B39;
+            --dark-bg: #222D32;
+            --sidebar-bg: #2C3E50;
+            --content-bg: #ECF0F5;
+            --card-bg: #FFFFFF;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --border-color: #D2D6DE;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--content-bg);
+            color: var(--text-primary);
+        }
+
+        /* Layout Structure */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            transition: transform 0.3s ease;
+            position: fixed;
+            height: 100%;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background-color: var(--dark-bg);
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 300;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            padding-left: 25px;
+        }
+
+        .nav-link.active {
+            background-color: var(--primary-color);
+            border-left: 3px solid white;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Header */
+        .header {
+            background-color: white;
+            padding: 15px 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 300;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* Content Area */
+        .content {
+            padding: 30px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        /* Status Cards */
+        .status-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .status-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .status-icon.success { background-color: var(--success-color); }
+        .status-icon.warning { background-color: var(--warning-color); }
+        .status-icon.info { background-color: var(--primary-color); }
+        .status-icon.danger { background-color: var(--danger-color); }
+
+        .status-info h3 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .status-info p {
+            margin: 5px 0 0 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #00A0CF;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Charts Container */
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Device List */
+        .device-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s ease;
+        }
+
+        .device-item:hover {
+            background-color: #F5F5F5;
+        }
+
+        .device-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .device-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(0,0,0,0.1);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+
+            .status-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app" x-data="routerApp()" x-init="init()">
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-toggle" @click="sidebarOpen = !sidebarOpen">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+        <!-- App Container -->
+        <div class="app-container">
+            <!-- Sidebar -->
+            <nav class="sidebar" :class="{ 'active': sidebarOpen }">
+                <div class="sidebar-header">
+                    <h1>GL.iNet Router</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" :class="{ 'active': currentPage === 'dashboard' }" @click="navigateTo('dashboard')">
+                            <span class="nav-icon">🏠</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" :class="{ 'active': currentPage === 'internet' }" @click="navigateTo('internet')">
+                            <span class="nav-icon">🌐</span>
+                            <span>Internet</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" :class="{ 'active': currentPage === 'wireless' }" @click="navigateTo('wireless')">
+                            <span class="nav-icon">📶</span>
+                            <span>Wireless</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" :class="{ 'active': currentPage === 'clients' }" @click="navigateTo('clients')">
+                            <span class="nav-icon">👥</span>
+                            <span>Clients</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" :class="{ 'active': currentPage === 'vpn' }" @click="navigateTo('vpn')">
+                            <span class="nav-icon">🔐</span>
+                            <span>VPN</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" :class="{ 'active': currentPage === 'applications' }" @click="navigateTo('applications')">
+                            <span class="nav-icon">📱</span>
+                            <span>Applications</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" :class="{ 'active': currentPage === 'system' }" @click="navigateTo('system')">
+                            <span class="nav-icon">⚙️</span>
+                            <span>System</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" :class="{ 'active': currentPage === 'more' }" @click="navigateTo('more')">
+                            <span class="nav-icon">➕</span>
+                            <span>More Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Header -->
+                <header class="header">
+                    <h1 class="header-title" x-text="pageTitle"></h1>
+                    <div class="header-actions">
+                        <span x-text="currentTime"></span>
+                        <button class="btn btn-primary" @click="logout()">Logout</button>
+                    </div>
+                </header>
+
+                <!-- Content -->
+                <div class="content">
+                    <!-- Dashboard Page -->
+                    <div x-show="currentPage === 'dashboard'" x-transition>
+                        <!-- Status Cards -->
+                        <div class="status-cards">
+                            <div class="status-card">
+                                <div class="status-icon success">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="status-info">
+                                    <h3>Connected</h3>
+                                    <p>Internet Status</p>
+                                </div>
+                            </div>
+                            
+                            <div class="status-card">
+                                <div class="status-icon info">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </div>
+                                <div class="status-info">
+                                    <h3 x-text="systemInfo.clients">12</h3>
+                                    <p>Connected Devices</p>
+                                </div>
+                            </div>
+                            
+                            <div class="status-card">
+                                <div class="status-icon warning">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="status-info">
+                                    <h3 x-text="systemInfo.uptime">5d 12h</h3>
+                                    <p>Uptime</p>
+                                </div>
+                            </div>
+                            
+                            <div class="status-card">
+                                <div class="status-icon success">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                                    </svg>
+                                </div>
+                                <div class="status-info">
+                                    <h3 x-text="systemInfo.model">GL-MT300N-V2</h3>
+                                    <p>Router Model</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Information Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">System Information</h2>
+                                <button class="btn btn-primary" @click="refreshSystemInfo()">Refresh</button>
+                            </div>
+                            <div class="pure-g">
+                                <div class="pure-u-1 pure-u-md-1-2">
+                                    <p><strong>CPU Usage:</strong> <span x-text="systemInfo.cpu + '%'">25%</span></p>
+                                    <p><strong>Memory Usage:</strong> <span x-text="systemInfo.memory + '%'">45%</span></p>
+                                    <p><strong>Firmware Version:</strong> <span x-text="systemInfo.firmware">OpenWrt 22.03.2</span></p>
+                                </div>
+                                <div class="pure-u-1 pure-u-md-1-2">
+                                    <p><strong>WAN IP:</strong> <span x-text="systemInfo.wanIp">192.168.1.100</span></p>
+                                    <p><strong>LAN IP:</strong> <span x-text="systemInfo.lanIp">192.168.8.1</span></p>
+                                    <p><strong>DNS Server:</strong> <span x-text="systemInfo.dns">8.8.8.8</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Traffic Chart -->
+                        <div class="charts-container">
+                            <div class="chart-card">
+                                <h3>Network Traffic (Real-time)</h3>
+                                <canvas id="trafficChart" width="400" height="200"></canvas>
+                            </div>
+                            <div class="chart-card">
+                                <h3>Connected Devices</h3>
+                                <ul class="device-list">
+                                    <template x-for="device in connectedDevices" :key="device.mac">
+                                        <li class="device-item">
+                                            <div class="device-info">
+                                                <div class="device-icon">
+                                                    <span x-text="device.type === 'mobile' ? '📱' : '💻'"></span>
+                                                </div>
+                                                <div>
+                                                    <strong x-text="device.name"></strong>
+                                                    <br>
+                                                    <small x-text="device.ip"></small>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span x-text="device.traffic"></span>
+                                            </div>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Internet Page -->
+                    <div x-show="currentPage === 'internet'" x-transition>
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Internet Connection</h2>
+                            </div>
+                            <p>Configure your internet connection settings here.</p>
+                            <div class="pure-g">
+                                <div class="pure-u-1 pure-u-md-1-3">
+                                    <button class="btn btn-primary">Ethernet</button>
+                                </div>
+                                <div class="pure-u-1 pure-u-md-1-3">
+                                    <button class="btn btn-primary">Wi-Fi Repeater</button>
+                                </div>
+                                <div class="pure-u-1 pure-u-md-1-3">
+                                    <button class="btn btn-primary">Mobile Tethering</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Other Pages -->
+                    <div x-show="currentPage === 'wireless'" x-transition>
+                        <div class="card">
+                            <h2 class="card-title">Wireless Settings</h2>
+                            <p>Configure your Wi-Fi network settings.</p>
+                        </div>
+                    </div>
+
+                    <div x-show="currentPage === 'clients'" x-transition>
+                        <div class="card">
+                            <h2 class="card-title">Connected Clients</h2>
+                            <p>View and manage connected devices.</p>
+                        </div>
+                    </div>
+
+                    <div x-show="currentPage === 'vpn'" x-transition>
+                        <div class="card">
+                            <h2 class="card-title">VPN Dashboard</h2>
+                            <p>Manage your VPN connections.</p>
+                        </div>
+                    </div>
+
+                    <div x-show="currentPage === 'applications'" x-transition>
+                        <div class="card">
+                            <h2 class="card-title">Applications</h2>
+                            <p>Install and manage router applications.</p>
+                        </div>
+                    </div>
+
+                    <div x-show="currentPage === 'system'" x-transition>
+                        <div class="card">
+                            <h2 class="card-title">System Settings</h2>
+                            <p>Configure system settings and perform maintenance.</p>
+                        </div>
+                    </div>
+
+                    <div x-show="currentPage === 'more'" x-transition>
+                        <div class="card">
+                            <h2 class="card-title">Advanced Settings</h2>
+                            <p>Access advanced router configurations.</p>
+                            <a href="/cgi-bin/luci" class="btn btn-primary">Open LuCI Interface</a>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function routerApp() {
+            return {
+                currentPage: 'dashboard',
+                pageTitle: 'Dashboard',
+                sidebarOpen: false,
+                currentTime: '',
+                systemInfo: {
+                    cpu: 25,
+                    memory: 45,
+                    firmware: 'OpenWrt 22.03.2',
+                    wanIp: '192.168.1.100',
+                    lanIp: '192.168.8.1',
+                    dns: '8.8.8.8',
+                    clients: 12,
+                    uptime: '5d 12h',
+                    model: 'GL-MT300N-V2'
+                },
+                connectedDevices: [
+                    { mac: '00:11:22:33:44:55', name: 'John\'s iPhone', ip: '192.168.8.100', type: 'mobile', traffic: '1.2 GB' },
+                    { mac: '00:11:22:33:44:56', name: 'Living Room PC', ip: '192.168.8.101', type: 'computer', traffic: '5.8 GB' },
+                    { mac: '00:11:22:33:44:57', name: 'Smart TV', ip: '192.168.8.102', type: 'computer', traffic: '3.4 GB' }
+                ],
+                
+                init() {
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+                    this.initWebSocket();
+                    this.drawTrafficChart();
+                },
+                
+                navigateTo(page) {
+                    this.currentPage = page;
+                    this.pageTitle = page.charAt(0).toUpperCase() + page.slice(1);
+                    this.sidebarOpen = false;
+                },
+                
+                updateTime() {
+                    const now = new Date();
+                    this.currentTime = now.toLocaleTimeString();
+                },
+                
+                refreshSystemInfo() {
+                    // Simulate API call
+                    console.log('Refreshing system info...');
+                    // In real implementation, this would call the REST API
+                },
+                
+                initWebSocket() {
+                    // In real implementation, this would connect to the WebSocket server
+                    console.log('WebSocket connection would be initialized here');
+                },
+                
+                drawTrafficChart() {
+                    const canvas = document.getElementById('trafficChart');
+                    if (canvas && canvas.getContext) {
+                        const ctx = canvas.getContext('2d');
+                        // Simple traffic visualization
+                        ctx.fillStyle = '#00C0EF';
+                        ctx.fillRect(0, 100, 50, 50);
+                        ctx.fillStyle = '#00A65A';
+                        ctx.fillRect(60, 80, 50, 70);
+                        // In real implementation, use a proper charting library
+                    }
+                },
+                
+                logout() {
+                    if (confirm('Are you sure you want to logout?')) {
+                        // In real implementation, this would clear the JWT token
+                        window.location.href = '/login';
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

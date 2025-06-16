@@ -1,0 +1,64 @@
+{
+    "glinet-interface": {
+        "description": "GL.iNet Style Interface Access Control",
+        "read": {
+            "ubus": {
+                "network.interface": ["dump", "status"],
+                "network.device": ["status"],
+                "network.wireless": ["status", "scan"],
+                "system": ["info", "board"],
+                "uci": ["get", "show"],
+                "file": ["read", "list", "stat"],
+                "luci": ["getConntrackList", "getRealtimeStats", "getDHCPLeases"],
+                "iwinfo": ["scan", "info", "assoclist", "freqlist", "countrylist"]
+            },
+            "uci": ["network", "wireless", "dhcp", "firewall", "system", "glinet_interface"],
+            "file": {
+                "/etc/config/*": ["read"],
+                "/proc/sys/net/*": ["read"],
+                "/proc/net/*": ["read"],
+                "/sys/class/net/*": ["read"],
+                "/tmp/dhcp.leases": ["read"],
+                "/var/log/*": ["read"]
+            }
+        },
+        "write": {
+            "ubus": {
+                "uci": ["add", "set", "delete", "commit", "apply"],
+                "network": ["restart", "reload"],
+                "system": ["reboot", "upgrade"],
+                "file": ["write", "remove"]
+            },
+            "uci": ["network", "wireless", "dhcp", "firewall", "system", "glinet_interface"],
+            "file": {
+                "/etc/config/*": ["write"],
+                "/etc/dropbear/*": ["write"],
+                "/etc/uhttpd.*": ["write"]
+            }
+        }
+    },
+    
+    "glinet-interface-readonly": {
+        "description": "GL.iNet Interface Read-Only Access",
+        "read": {
+            "ubus": {
+                "network.interface": ["dump", "status"],
+                "network.device": ["status"],
+                "network.wireless": ["status"],
+                "system": ["info", "board"],
+                "uci": ["get", "show"],
+                "file": ["read", "list", "stat"],
+                "luci": ["getConntrackList", "getRealtimeStats", "getDHCPLeases"],
+                "iwinfo": ["info", "assoclist"]
+            },
+            "uci": ["network", "wireless", "dhcp", "firewall", "system"],
+            "file": {
+                "/etc/config/*": ["read"],
+                "/proc/sys/net/*": ["read"],
+                "/proc/net/*": ["read"],
+                "/sys/class/net/*": ["read"],
+                "/tmp/dhcp.leases": ["read"]
+            }
+        }
+    }
+}

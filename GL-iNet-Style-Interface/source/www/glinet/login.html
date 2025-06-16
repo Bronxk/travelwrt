@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GL.iNet Router - Login</title>
+    
+    <!-- Alpine.js for reactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #00C0EF 0%, #1E90FF 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .router-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .login-form {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #00C0EF;
+            box-shadow: 0 0 0 3px rgba(0, 192, 239, 0.1);
+        }
+
+        .form-input.error {
+            border-color: #e74c3c;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .password-toggle:hover {
+            color: #333;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .remember-me label {
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00C0EF 0%, #1E90FF 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 192, 239, 0.3);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-left-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .error-icon {
+            margin-right: 8px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-footer {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .login-footer a {
+            color: #00C0EF;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            .login-header {
+                padding: 30px 20px;
+            }
+            
+            .login-form {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loginApp" x-data="loginController()" x-init="init()">
+        <!-- Language Selector -->
+        <select class="language-selector" x-model="language" @change="changeLanguage()">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="es">Español</option>
+            <option value="de">Deutsch</option>
+        </select>
+
+        <div class="login-container">
+            <!-- Header -->
+            <div class="login-header">
+                <div class="router-icon">
+                    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="10" rx="2"/>
+                        <circle cx="6" cy="12" r="1"/>
+                        <circle cx="12" cy="12" r="1"/>
+                        <circle cx="18" cy="12" r="1"/>
+                        <path d="M7 2l1 5M17 2l-1 5M7 22l1-5M17 22l-1-5"/>
+                    </svg>
+                </div>
+                <h1 x-text="translations[language].title">GL.iNet Router</h1>
+                <p x-text="translations[language].subtitle">Admin Panel Login</p>
+            </div>
+
+            <!-- Login Form -->
+            <form class="login-form" @submit.prevent="handleLogin()">
+                <!-- Error Message -->
+                <div class="error-message" x-show="errorMessage" x-transition>
+                    <span class="error-icon">⚠️</span>
+                    <span x-text="errorMessage"></span>
+                </div>
+
+                <!-- Success Message -->
+                <div class="success-message" x-show="successMessage" x-transition>
+                    <span>✓</span>
+                    <span x-text="successMessage"></span>
+                </div>
+
+                <!-- Username -->
+                <div class="form-group">
+                    <label class="form-label" x-text="translations[language].username">Username</label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        :class="{'error': errors.username}"
+                        x-model="credentials.username"
+                        @input="clearError('username')"
+                        :placeholder="translations[language].usernamePlaceholder"
+                        required
+                        autofocus
+                    >
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label class="form-label" x-text="translations[language].password">Password</label>
+                    <div class="password-container">
+                        <input 
+                            :type="showPassword ? 'text' : 'password'" 
+                            class="form-input" 
+                            :class="{'error': errors.password}"
+                            x-model="credentials.password"
+                            @input="clearError('password')"
+                            :placeholder="translations[language].passwordPlaceholder"
+                            required
+                        >
+                        <button type="button" class="password-toggle" @click="showPassword = !showPassword">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path x-show="!showPassword" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle x-show="!showPassword" cx="12" cy="12" r="3"/>
+                                <path x-show="showPassword" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                                <line x-show="showPassword" x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember Me -->
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" x-model="rememberMe">
+                    <label for="remember" x-text="translations[language].rememberMe">Remember me</label>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="login-button" :disabled="isLoading">
+                    <span x-text="isLoading ? translations[language].loggingIn : translations[language].login">Login</span>
+                    <span class="spinner" x-show="isLoading"></span>
+                </button>
+            </form>
+
+            <!-- Footer -->
+            <div class="login-footer">
+                <p>
+                    <span x-text="translations[language].defaultCreds">Default: admin/admin</span> | 
+                    <a href="#" @click.prevent="showHelp()" x-text="translations[language].needHelp">Need help?</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loginController() {
+            return {
+                credentials: {
+                    username: '',
+                    password: ''
+                },
+                rememberMe: false,
+                showPassword: false,
+                isLoading: false,
+                errorMessage: '',
+                successMessage: '',
+                errors: {
+                    username: false,
+                    password: false
+                },
+                language: 'en',
+                translations: {
+                    en: {
+                        title: 'GL.iNet Router',
+                        subtitle: 'Admin Panel Login',
+                        username: 'Username',
+                        usernamePlaceholder: 'Enter username',
+                        password: 'Password',
+                        passwordPlaceholder: 'Enter password',
+                        rememberMe: 'Remember me',
+                        login: 'Login',
+                        loggingIn: 'Logging in...',
+                        defaultCreds: 'Default: admin/admin',
+                        needHelp: 'Need help?',
+                        loginSuccess: 'Login successful! Redirecting...',
+                        invalidCreds: 'Invalid username or password',
+                        accountLocked: 'Account locked. Please try again later.',
+                        serverError: 'Server error. Please try again.'
+                    },
+                    zh: {
+                        title: 'GL.iNet 路由器',
+                        subtitle: '管理面板登录',
+                        username: '用户名',
+                        usernamePlaceholder: '请输入用户名',
+                        password: '密码',
+                        passwordPlaceholder: '请输入密码',
+                        rememberMe: '记住我',
+                        login: '登录',
+                        loggingIn: '正在登录...',
+                        defaultCreds: '默认: admin/admin',
+                        needHelp: '需要帮助？',
+                        loginSuccess: '登录成功！正在跳转...',
+                        invalidCreds: '用户名或密码错误',
+                        accountLocked: '账户已锁定，请稍后再试',
+                        serverError: '服务器错误，请重试'
+                    }
+                },
+                
+                init() {
+                    // Check for saved language preference
+                    const savedLang = localStorage.getItem('language');
+                    if (savedLang && this.translations[savedLang]) {
+                        this.language = savedLang;
+                    }
+                    
+                    // Check for remembered username
+                    const savedUsername = localStorage.getItem('username');
+                    if (savedUsername) {
+                        this.credentials.username = savedUsername;
+                        this.rememberMe = true;
+                    }
+                    
+                    // Check if already logged in
+                    this.checkExistingSession();
+                },
+                
+                changeLanguage() {
+                    localStorage.setItem('language', this.language);
+                },
+                
+                clearError(field) {
+                    this.errors[field] = false;
+                    if (this.errorMessage) {
+                        this.errorMessage = '';
+                    }
+                },
+                
+                async handleLogin() {
+                    // Validate inputs
+                    if (!this.credentials.username) {
+                        this.errors.username = true;
+                        return;
+                    }
+                    
+                    if (!this.credentials.password) {
+                        this.errors.password = true;
+                        return;
+                    }
+                    
+                    this.isLoading = true;
+                    this.errorMessage = '';
+                    
+                    try {
+                        const response = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.credentials)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok && data.access_token) {
+                            // Save token
+                            sessionStorage.setItem('access_token', data.access_token);
+                            sessionStorage.setItem('refresh_token', data.refresh_token);
+                            
+                            // Save username if remember me is checked
+                            if (this.rememberMe) {
+                                localStorage.setItem('username', this.credentials.username);
+                            } else {
+                                localStorage.removeItem('username');
+                            }
+                            
+                            this.successMessage = this.translations[this.language].loginSuccess;
+                            
+                            // Redirect to dashboard
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 1000);
+                        } else {
+                            // Handle error response
+                            if (data.message && data.message.includes('locked')) {
+                                this.errorMessage = this.translations[this.language].accountLocked;
+                            } else {
+                                this.errorMessage = this.translations[this.language].invalidCreds;
+                            }
+                            
+                            // Shake the form
+                            this.errors.username = true;
+                            this.errors.password = true;
+                            
+                            setTimeout(() => {
+                                this.errors.username = false;
+                                this.errors.password = false;
+                            }, 1000);
+                        }
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        this.errorMessage = this.translations[this.language].serverError;
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                
+                async checkExistingSession() {
+                    const token = sessionStorage.getItem('access_token');
+                    if (token) {
+                        // Verify token is still valid
+                        try {
+                            const response = await fetch('/api/system/info', {
+                                headers: {
+                                    'Authorization': 'Bearer ' + token
+                                }
+                            });
+                            
+                            if (response.ok) {
+                                // Token is valid, redirect to dashboard
+                                window.location.href = '/';
+                            }
+                        } catch (error) {
+                            // Token invalid, stay on login page
+                            sessionStorage.removeItem('access_token');
+                            sessionStorage.removeItem('refresh_token');
+                        }
+                    }
+                },
+                
+                showHelp() {
+                    alert('Default credentials:\nUsername: admin\nPassword: admin\n\nPlease change the password after first login.');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

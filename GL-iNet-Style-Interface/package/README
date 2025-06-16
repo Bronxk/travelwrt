@@ -1,0 +1,16 @@
+GL.iNet Style Interface Package
+
+This package provides a modern web interface for OpenWrt routers.
+
+Contents:
+- Web interface files
+- Lua backend controllers
+- Authentication system
+- WebSocket server
+- Configuration files
+
+Installation:
+opkg install luci-app-glinet-style_1.0.0_all.ipk
+
+Repository:
+https://github.com/your-repo/glinet-style

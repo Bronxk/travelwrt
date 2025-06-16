@@ -1,0 +1,107 @@
+#!/bin/sh /etc/rc.common
+# GL.iNet Style Interface Init Script
+
+START=95
+STOP=10
+
+USE_PROCD=1
+PROG=/usr/bin/glinet-ws-server
+PIDFILE=/var/run/glinet-interface.pid
+
+start_service() {
+    # Create necessary directories
+    mkdir -p /var/log/glinet-interface
+    mkdir -p /var/run
+    
+    # Start the WebSocket server
+    procd_open_instance
+    procd_set_param command $PROG
+    procd_set_param respawn
+    procd_set_param stderr 1
+    procd_set_param pidfile $PIDFILE
+    procd_set_param file /etc/config/glinet_interface
+    procd_close_instance
+    
+    # Configure uhttpd for the interface
+    setup_uhttpd
+    
+    # Set up iptables rules for traffic monitoring
+    setup_iptables
+}
+
+setup_uhttpd() {
+    # Check if glinet configuration exists
+    if ! uci get uhttpd.glinet >/dev/null 2>&1; then
+        # Create uhttpd configuration for GL.iNet interface
+        uci batch <<-EOF
+            set uhttpd.glinet=uhttpd
+            set uhttpd.glinet.listen_http='0.0.0.0:80'
+            set uhttpd.glinet.listen_http='[::]:80'
+            set uhttpd.glinet.listen_https='0.0.0.0:443'
+            set uhttpd.glinet.listen_https='[::]:443'
+            set uhttpd.glinet.home='/www/glinet'
+            set uhttpd.glinet.index_page='index.html login.html'
+            set uhttpd.glinet.max_requests='100'
+            set uhttpd.glinet.max_connections='200'
+            set uhttpd.glinet.cgi_prefix='/api'
+            set uhttpd.glinet.lua_prefix='/api'
+            set uhttpd.glinet.lua_handler='/usr/lib/lua/luci/controller/glinet/api.lua'
+            set uhttpd.glinet.script_timeout='60'
+            set uhttpd.glinet.network_timeout='30'
+            set uhttpd.glinet.http_keepalive='20'
+            set uhttpd.glinet.tcp_keepalive='1'
+            set uhttpd.glinet.cert='/etc/uhttpd.crt'
+            set uhttpd.glinet.key='/etc/uhttpd.key'
+            commit uhttpd
+EOF
+    fi
+    
+    # Generate self-signed certificate if it doesn't exist
+    if [ ! -f /etc/uhttpd.crt ] || [ ! -f /etc/uhttpd.key ]; then
+        px5g selfsign -days 730 -newkey rsa:2048 -keyout /etc/uhttpd.key -out /etc/uhttpd.crt \
+            -subj "/C=US/ST=State/L=City/O=GL.iNet/CN=$(uci get system.@system[0].hostname).local"
+    fi
+    
+    # Restart uhttpd
+    /etc/init.d/uhttpd restart
+}
+
+setup_iptables() {
+    # Create custom chains for traffic accounting
+    iptables -t mangle -N GLINET_TRAFFIC_IN 2>/dev/null || true
+    iptables -t mangle -N GLINET_TRAFFIC_OUT 2>/dev/null || true
+    
+    # Clear existing rules
+    iptables -t mangle -F GLINET_TRAFFIC_IN 2>/dev/null || true
+    iptables -t mangle -F GLINET_TRAFFIC_OUT 2>/dev/null || true
+    
+    # Add jump rules
+    iptables -t mangle -D FORWARD -i br-lan -j GLINET_TRAFFIC_IN 2>/dev/null || true
+    iptables -t mangle -D FORWARD -o br-lan -j GLINET_TRAFFIC_OUT 2>/dev/null || true
+    
+    iptables -t mangle -A FORWARD -i br-lan -j GLINET_TRAFFIC_IN
+    iptables -t mangle -A FORWARD -o br-lan -j GLINET_TRAFFIC_OUT
+    
+    # Add accounting rules for each LAN client
+    # These will be dynamically added as clients connect
+}
+
+stop_service() {
+    # Remove iptables rules
+    iptables -t mangle -D FORWARD -i br-lan -j GLINET_TRAFFIC_IN 2>/dev/null || true
+    iptables -t mangle -D FORWARD -o br-lan -j GLINET_TRAFFIC_OUT 2>/dev/null || true
+    iptables -t mangle -F GLINET_TRAFFIC_IN 2>/dev/null || true
+    iptables -t mangle -F GLINET_TRAFFIC_OUT 2>/dev/null || true
+    iptables -t mangle -X GLINET_TRAFFIC_IN 2>/dev/null || true
+    iptables -t mangle -X GLINET_TRAFFIC_OUT 2>/dev/null || true
+}
+
+reload_service() {
+    stop
+    start
+}
+
+service_triggers() {
+    procd_add_reload_trigger "glinet_interface"
+    procd_add_reload_trigger "uhttpd"
+}
